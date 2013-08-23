@@ -18,7 +18,7 @@ my %tests = (
         [ 'is',     'ean13',        '9780552557795'             ],
         [ 'is',     'title',        'Nation'                    ],
         [ 'is',     'author',       'Terry Pratchett'           ],
-        [ 'is',     'publisher',    'Random House Children\'s Books'    ],
+        [ 'is',     'publisher',    'Random House Children\'s Publishers UK'    ],
         [ 'is',     'pubdate',      '08/10/2009'                ],
         [ 'is',     'binding',      'Paperback'                 ],
         [ 'is',     'pages',        '432'                       ],
@@ -27,7 +27,7 @@ my %tests = (
         [ 'is',     'weight',       undef                       ],
         [ 'is',     'image_link',   'http://www.whsmith.co.uk/Images/Products\552\557\9780552557795_m_f.jpg' ],
         [ 'is',     'thumb_link',   'http://www.whsmith.co.uk/Images/Products\552\557\9780552557795_m_f.jpg' ],
-        [ 'like',   'description',  qr|When a giant wave destroys his entire Nation| ],
+        [ 'like',   'description',  qr|On the day the world ends| ],
         [ 'is',     'book_link',    'http://www.whsmith.co.uk/CatalogAndSearch/ProductDetails.aspx?productID=9780552557795' ]
     ],
     '9780571239566' => [
@@ -75,7 +75,7 @@ SKIP: {
     elsif($record->found) {
         ok(0,'Unexpectedly found a non-existent book');
     } else {
-		like($record->error,qr/Failed to find that book|website appears to be unavailable/);
+		like($record->error,qr/Invalid ISBN specified|Failed to find that book|website appears to be unavailable/);
     }
 
     for my $isbn (keys %tests) {

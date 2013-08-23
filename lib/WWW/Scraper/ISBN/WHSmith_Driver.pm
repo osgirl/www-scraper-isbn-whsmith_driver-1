@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use vars qw($VERSION @ISA);
-$VERSION = '0.01';
+$VERSION = '0.02';
 
 #--------------------------------------------------------------------------
 
@@ -39,6 +39,7 @@ use WWW::Mechanize;
 
 use constant	REFERER	=> 'http://www.whsmith.co.uk';
 use constant	SEARCH	=> 'http://www.whsmith.co.uk/CatalogAndSearch/SearchResultsAcrossCategories.aspx?gq=';
+use constant    PRODUCT => 'http://www.whsmith.co.uk/CatalogAndSearch/ProductDetails.aspx?productID=';
 
 #--------------------------------------------------------------------------
 
@@ -77,8 +78,6 @@ a valid page is returned, the following fields are returned via the book hash:
 
 The book_link and image_link refer back to the WHSmith website.
 
-=back
-
 =cut
 
 sub search {
@@ -87,6 +86,15 @@ sub search {
 	$self->found(0);
 	$self->book(undef);
 
+    # validate and convert into EAN13 format
+    my $ean = $self->convert_to_ean13($isbn);
+    return $self->handler("Invalid ISBN specified [$isbn]")   
+        if(!$ean || (length $isbn == 13 && $isbn ne $ean)
+                 || (length $isbn == 10 && $isbn ne $self->convert_to_isbn10($ean)));
+
+    $isbn = $ean;
+#print STDERR "\n# isbn=[\n$isbn\n]\n";
+
 	my $mech = WWW::Mechanize->new();
     $mech->agent_alias( 'Linux Mozilla' );
     $mech->add_header( 'Accept-Encoding' => undef );
@@ -94,19 +102,19 @@ sub search {
 
 #print STDERR "\n# link=[".SEARCH."$isbn]\n";
 
-    eval { $mech->get( SEARCH . $isbn ) };
+    eval { $mech->get( PRODUCT . $isbn ) };
     return $self->handler("the WHSmith website appears to be unavailable.")
 	    if($@ || !$mech->success() || !$mech->content());
 
-	# The Book page
+  	# The Book page
     my $html = $mech->content();
-
 	return $self->handler("Failed to find that book on the WHSmith website. [$isbn]")
 		if($html =~ m!Sorry, we cannot find any products matching your search!si);
-    
+
     $html =~ s/&amp;/&/g;
     $html =~ s/&#0?39;/'/g;
     $html =~ s/&nbsp;/ /g;
+
 #print STDERR "\n# html=[\n$html\n]\n";
 
     my $data;
@@ -181,6 +189,79 @@ sub search {
 	return $self->book;
 }
 
+=item C<convert_to_ean13()>
+
+Given a 10/13 character ISBN, this function will return the correct 13 digit
+ISBN, also known as EAN13.
+
+=item C<convert_to_isbn10()>
+
+Given a 10/13 character ISBN, this function will return the correct 10 digit 
+ISBN.
+
+=back
+
+=cut
+
+sub convert_to_ean13 {
+	my $self = shift;
+    my $isbn = shift;
+    my $prefix;
+
+    return  unless(length $isbn == 10 || length $isbn == 13);
+
+    if(length $isbn == 13) {
+        return  if($isbn !~ /^(978|979)(\d{10})$/);
+        ($prefix,$isbn) = ($1,$2);
+    } else {
+        return  if($isbn !~ /^(\d{10}|\d{9}X)$/);
+        $prefix = '978';
+    }
+
+    my $isbn13 = '978' . $isbn;
+    chop($isbn13);
+    my @isbn = split(//,$isbn13);
+    my ($lsum,$hsum) = (0,0);
+    while(@isbn) {
+        $hsum += shift @isbn;
+        $lsum += shift @isbn;
+    }
+
+    my $csum = ($lsum * 3) + $hsum;
+    $csum %= 10;
+    $csum = 10 - $csum  if($csum != 0);
+
+    return $isbn13 . $csum;
+}
+
+sub convert_to_isbn10 {
+	my $self = shift;
+    my $ean  = shift;
+    my ($isbn,$isbn10);
+
+    return  unless(length $ean == 10 || length $ean == 13);
+
+    if(length $ean == 13) {
+        return  if($ean !~ /^(?:978|979)(\d{9})\d$/);
+        ($isbn,$isbn10) = ($1,$1);
+    } else {
+        return  if($ean !~ /^(\d{9})[\dX]$/);
+        ($isbn,$isbn10) = ($1,$1);
+    }
+
+	return  if($isbn < 0 or $isbn > 999999999);
+
+	my ($csum, $pos, $digit) = (0, 0, 0);
+    for ($pos = 9; $pos > 0; $pos--) {
+        $digit = $isbn % 10;
+        $isbn /= 10;             # Decimal shift ISBN for next time 
+        $csum += ($pos * $digit);
+    }
+    $csum %= 11;
+    $csum = 'X'   if ($csum == 10);
+    return $isbn10 . $csum;
+}
+
 1;
 
 __END__
@@ -207,7 +288,7 @@ RT system (http://rt.cpan.org/Public/Dist/Display.html?Name=WWW-Scraper-ISBN-WHS
 However, it would help greatly if you are able to pinpoint problems or even
 supply a patch.
 
-Fixes are dependant upon their severity and my availablity. Should a fix not
+Fixes are dependent upon their severity and my availability. Should a fix not
 be forthcoming, please feel free to (politely) remind me.
 
 =head1 AUTHOR
@@ -217,7 +298,7 @@ be forthcoming, please feel free to (politely) remind me.
 
 =head1 COPYRIGHT & LICENSE
 
-  Copyright (C) 2010 Barbie for Miss Barbell Productions
+  Copyright (C) 2010-2012 Barbie for Miss Barbell Productions
 
   This module is free software; you can redistribute it and/or
   modify it under the Artistic Licence v2.
