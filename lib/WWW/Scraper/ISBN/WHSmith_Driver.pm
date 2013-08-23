@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use vars qw($VERSION @ISA);
-$VERSION = '0.02';
+$VERSION = '0.03';
 
 #--------------------------------------------------------------------------
 
@@ -111,6 +111,10 @@ sub search {
 	return $self->handler("Failed to find that book on the WHSmith website. [$isbn]")
 		if($html =~ m!Sorry, we cannot find any products matching your search!si);
 
+    my $url = $mech->uri();
+	return $self->handler("Failed to find that book on the WHSmith website. [$isbn]")
+		if($url =~ m!Error.aspx!si);
+
     $html =~ s/&amp;/&/g;
     $html =~ s/&#0?39;/'/g;
     $html =~ s/&nbsp;/ /g;
@@ -158,8 +162,6 @@ sub search {
         $data->{$_} =~ s/^\s+//;
         $data->{$_} =~ s/\s+$//;
     }
-
-    my $url = $mech->uri();
 
 	my $bk = {
 		'ean13'		    => $data->{isbn13},

@@ -1,5 +1,8 @@
 Revision history for Perl extension WWW-Scraper-ISBN-WHSmith_Driver.
 
+0.03	03/06/2012
+	- added checks for site error pages
+
 0.02	13/05/2012
 	- updated pattern matching due to page layout changes.
 	- spelling fixes. (thanks to Florian Schlichting & Gregor Herrmann).
