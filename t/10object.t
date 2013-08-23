@@ -1,7 +1,6 @@
 #!/usr/bin/perl -w
 use strict;
 
-use lib './t';
 use Test::More tests => 40;
 use WWW::Scraper::ISBN;
 
@@ -28,7 +27,7 @@ my %tests = (
         [ 'is',     'image_link',   'http://www.whsmith.co.uk/Images/Products\552\557\9780552557795_m_f.jpg' ],
         [ 'is',     'thumb_link',   'http://www.whsmith.co.uk/Images/Products\552\557\9780552557795_m_f.jpg' ],
         [ 'like',   'description',  qr|On the day the world ends| ],
-        [ 'is',     'book_link',    'http://www.whsmith.co.uk/CatalogAndSearch/ProductDetails.aspx?productID=9780552557795' ]
+        [ 'is',     'book_link',    'http://www.whsmith.co.uk/Products/Nation+Paperback+9780552557795' ]
     ],
     '9780571239566' => [
         [ 'is',     'isbn',         '9780571239566'             ],
@@ -47,7 +46,7 @@ my %tests = (
         [ 'is',     'image_link',   'http://www.whsmith.co.uk/Images/Products\571\239\9780571239566_m_f.jpg' ],
         [ 'is',     'thumb_link',   'http://www.whsmith.co.uk/Images/Products\571\239\9780571239566_m_f.jpg' ],
         [ 'like',   'description',  qr|Ian Curtis left behind a legacy rich in artistic genius| ],
-        [ 'is',     'book_link',    'http://www.whsmith.co.uk/CatalogAndSearch/ProductDetails.aspx?productID=9780571239566' ]
+        [ 'is',     'book_link',    'http://www.whsmith.co.uk/Products/Touching-from-a-Distance-illustrated-edition+Paperback+9780571239566' ]
     ],
 );
 
