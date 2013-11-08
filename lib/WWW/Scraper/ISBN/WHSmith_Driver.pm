@@ -38,8 +38,8 @@ use WWW::Mechanize;
 # Constants
 
 use constant	REFERER	=> 'http://www.whsmith.co.uk';
-use constant	SEARCH	=> 'http://www.whsmith.co.uk/CatalogAndSearch/SearchResultsAcrossCategories.aspx?gq=';
-use constant    PRODUCT => 'http://www.whsmith.co.uk/CatalogAndSearch/ProductDetails.aspx?productID=';
+use constant	SEARCH	=> 'http://www.whsmith.co.uk/pws/doAdvancedSearch.ice?page=1&results=60&advancedCategoryId=wc_dept_books&keywordCategoryId=wc_dept_books&advanceSearch=true&title=&contributor=&format_fg=&publisher=&series=&imprint=&isbn13=';
+use constant    PRODUCT => '/products/[^/]+/product/';
 
 #--------------------------------------------------------------------------
 
@@ -100,16 +100,29 @@ sub search {
     $mech->add_header( 'Accept-Encoding' => undef );
     $mech->add_header( 'Referer' => REFERER );
 
-#print STDERR "\n# link=[".SEARCH."$isbn]\n";
+    my $search = SEARCH . $isbn;
+#print STDERR "\n# search=[$search]\n";
+    eval { $mech->get( $search ) };
+    return $self->handler("the WHSmith website appears to be unavailable.")
+	    if($@ || !$mech->success() || !$mech->content());
 
-    eval { $mech->get( PRODUCT . $isbn ) };
+    my $html = $mech->content();
+    my $product = PRODUCT . $isbn;
+#print STDERR "\n# product=[$product]\n";
+#print STDERR "\n# html=[\n$html\n]\n";
+    my ($link) = $html =~ /($product)/si;
+	return $self->handler("Failed to find that book on the WHSmith website. [$isbn]")
+		unless($link);
+
+#print STDERR "\n# link=[$link]\n";
+    eval { $mech->get( REFERER . $link ) };
     return $self->handler("the WHSmith website appears to be unavailable.")
 	    if($@ || !$mech->success() || !$mech->content());
 
   	# The Book page
-    my $html = $mech->content();
+    $html = $mech->content();
 	return $self->handler("Failed to find that book on the WHSmith website. [$isbn]")
-		if($html =~ m!Sorry, we cannot find any products matching your search!si);
+		if($html =~ m!Sorry, no products were found!si);
 
     my $url = $mech->uri();
 	return $self->handler("Failed to find that book on the WHSmith website. [$isbn]")
@@ -122,32 +135,33 @@ sub search {
 #print STDERR "\n# html=[\n$html\n]\n";
 
     my $data;
-    ($data->{isbn13})           = $html =~ m!<span class="bold ">ISBN 13:\s*</span><span>([^<]+)</span>!si;
-    ($data->{isbn10})           = $html =~ m!<span class="bold ">ISBN 10:\s*</span><span>([^<]+)</span>!si;
+    ($data->{isbn13})           = $html =~ m!<li itemprop="ISBN13">\s*<strong>ISBN13:</strong>\s*(.*?)</li>!si;
+    ($data->{isbn10})           = $html =~ m!<li itemprop="ISBN10">\s*<strong>ISBN10:</strong>\s*(.*?)</li>!si;
     ($data->{publisher})        = $html =~ m!<span class="bold ">Publisher:\s*</span><span><a href="[^"]+" style="text-decoration:underline;">([^<]+)</a></span>!si;
-    ($data->{pubdate})          = $html =~ m!<span class="bold ">Publication Date:\s*</span><span>([^<]+)</span>!si;
-    ($data->{title})            = $html =~ m!<span class="bold ">Title:\s*</span><span>([^<]+)</span>!si;
-    ($data->{binding})          = $html =~ m!<span id="ctl00_ctl00_cph_content_twoColumnCustomDIV_whsProductSummary_spanFormat" class="bold">Format:\s*</span>\s*<span id="ctl00_ctl00_cph_content_twoColumnCustomDIV_whsProductSummary_labelFormat">([^<]+)</span>!si;
-    ($data->{pages})            = $html =~ m!<span class="bold ">Pages: </span><span>(\d+)</span>!si;
-    ($data->{author})           = $html =~ m!<meta name="description" content="([^"]+)" />!si;
-    ($data->{image})            = $html =~ m!<img id="ctl00_ctl00_cph_content_twoColumnCustomDIV_whsProductSummary_ibtnPrimaryImage" onclick="javascript:popupBigImage2.this." src="([^"]+)"!si;
-    ($data->{thumb})            = $html =~ m!<img id="ctl00_ctl00_cph_content_twoColumnCustomDIV_whsProductSummary_ibtnPrimaryImage" onclick="javascript:popupBigImage2.this." src="([^"]+)"!si;
-    ($data->{description})      = $html =~ m!<span id="ctl00_ctl00_cph_content_twoColumnCustomDIV_lblTitleDescription" class="textgrow120">'[^<]+' Description</span>\s*<div style="padding-bottom:5px"></div>\s*<span id="ctl00_ctl00_cph_content_twoColumnCustomDIV_productDescription" style="font-size:95%;"><p>([^<]+)!si;
+    ($data->{pubdate})          = $html =~ m!<li itemprop="publication date">\s*<strong>publication date:</strong>\s*(.*?)</li>!si;
+    ($data->{title})            = $html =~ m!<h1 itemprop="name" id="product_title">([^<]*)</h1>!si;
+    ($data->{binding})          = $html =~ m!<div id="product_title_container">.*?<em class="secondary">([^<]+)</em></div>!si;
+    ($data->{binding})          = $html =~ m!<li itemprop="Format">\s*<strong>Format:</strong>\s*(.*?)</li>!si  unless($data->{binding});
+    ($data->{pages})            = $html =~ m!<li itemprop="Number Of Pages">\s*<strong>Number Of Pages:</strong>\s*(.*?)</li>!si;
+    ($data->{author})           = $html =~ m!<span class="secondary"><strong>By:</strong>(.*?)</span>!si;
+    ($data->{image})            = $html =~ m!<img  id='main_image' src="([^"]+)" alt="[^"]*"\s*itemprop="image" />!si;
+    ($data->{thumb})            = $html =~ m!<img  id='main_image' src="([^"]+)" alt="[^"]*"\s*itemprop="image" />!si;
+    ($data->{description})      = $html =~ m!<meta name="description" content="([^"]*)" />!si;
 
     # currently not provided
     ($data->{width})            = $html =~ m!<span class="bold ">Width:\s*</span><span>([^<]+)</span>!si;
     ($data->{height})           = $html =~ m!<span class="bold ">Height:\s*</span><span>([^<]+)</span>!si;
-    ($data->{weight})           = $html =~ m!<span class="bold ">Weight:\s*</span><span>([^<]+)</span>!s;
+    ($data->{weight})           = $html =~ m!<li itemprop="weight">\s*<strong>weight:</strong>\s*(.*?)</li>!s;
 
     $data->{width}  = int($data->{width})   if($data->{width});
     $data->{height} = int($data->{height})  if($data->{height});
     $data->{weight} = int($data->{weight})  if($data->{weight});
 
-    $data->{author} =~ s/^.*by (.*?) now.$/$1/i if($data->{author});
-
-    if($data->{image}) {
-        $data->{image} = REFERER . $data->{image};
-        $data->{thumb} = $data->{image};
+    if($data->{author}) {
+        $data->{author} =~ s/<[^>]*>//g;
+        $data->{author} =~ s/\(author\)/ /g;
+        $data->{author} =~ s/\s+/ /g;
+        $data->{author} =~ s/\s+,\s+/, /g;
     }
 
 #use Data::Dumper;
@@ -180,7 +194,8 @@ sub search {
 		'pages'		    => $data->{pages},
 		'weight'		=> $data->{weight},
 		'width'		    => $data->{width},
-		'height'		=> $data->{height}
+		'height'		=> $data->{height},
+        'html'          => $html
 	};
 
 #use Data::Dumper;

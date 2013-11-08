@@ -1,6 +1,7 @@
 #!/usr/bin/perl -w
 use strict;
 
+use Data::Dumper;
 use Test::More tests => 40;
 use WWW::Scraper::ISBN;
 
@@ -11,42 +12,42 @@ my $CHECK_DOMAIN    = 'www.google.com';
 
 my %tests = (
     '055255779X' => [
-        [ 'is',     'isbn',         '9780552557795'             ],
-        [ 'is',     'isbn10',       '055255779X'                ],
-        [ 'is',     'isbn13',       '9780552557795'             ],
-        [ 'is',     'ean13',        '9780552557795'             ],
-        [ 'is',     'title',        'Nation'                    ],
-        [ 'is',     'author',       'Terry Pratchett'           ],
-        [ 'is',     'publisher',    'Random House Children\'s Publishers UK'    ],
-        [ 'is',     'pubdate',      '08/10/2009'                ],
-        [ 'is',     'binding',      'Paperback'                 ],
-        [ 'is',     'pages',        '432'                       ],
-        [ 'is',     'width',        undef                       ],
-        [ 'is',     'height',       undef                       ],
-        [ 'is',     'weight',       undef                       ],
-        [ 'is',     'image_link',   'http://www.whsmith.co.uk/Images/Products\552\557\9780552557795_m_f.jpg' ],
-        [ 'is',     'thumb_link',   'http://www.whsmith.co.uk/Images/Products\552\557\9780552557795_m_f.jpg' ],
-        [ 'like',   'description',  qr|On the day the world ends| ],
-        [ 'is',     'book_link',    'http://www.whsmith.co.uk/Products/Nation+Paperback+9780552557795' ]
+        [ 'is',     'isbn',         '9780552557795'                 ],
+        [ 'is',     'isbn10',       '055255779X'                    ],
+        [ 'is',     'isbn13',       '9780552557795'                 ],
+        [ 'is',     'ean13',        '9780552557795'                 ],
+        [ 'is',     'title',        'Nation'                        ],
+        [ 'is',     'author',       'Terry Pratchett'               ],
+        [ 'is',     'publisher',    undef                           ],
+        [ 'is',     'pubdate',      '08/10/2009'                    ],
+        [ 'is',     'binding',      'Paperback'                     ],
+        [ 'is',     'pages',        '432'                           ],
+        [ 'is',     'width',        undef                           ],
+        [ 'is',     'height',       undef                           ],
+        [ 'is',     'weight',       311                             ],
+        [ 'is',     'image_link',   'http://btmedia.whsmith.co.uk/pws/client/images/catalogue/products/9780/55/2557795/xlarge/9780552557795_1.jpg' ],
+        [ 'is',     'thumb_link',   'http://btmedia.whsmith.co.uk/pws/client/images/catalogue/products/9780/55/2557795/xlarge/9780552557795_1.jpg' ],
+        [ 'like',   'description',  qr|On the day the world ends|   ],
+        [ 'is',     'book_link',    'http://www.whsmith.co.uk/products/nation/product/9780552557795' ]
     ],
-    '9780571239566' => [
-        [ 'is',     'isbn',         '9780571239566'             ],
-        [ 'is',     'isbn10',       '0571239560'                ],
-        [ 'is',     'isbn13',       '9780571239566'             ],
-        [ 'is',     'ean13',        '9780571239566'             ],
-        [ 'is',     'title',        'Touching from a Distance'  ],
-        [ 'is',     'author',       'Deborah Curtis'            ],
-        [ 'is',     'publisher',    'Faber and Faber'           ],
-        [ 'is',     'pubdate',      '04/10/2007'                ],
-        [ 'is',     'binding',      'Paperback'                 ],
-        [ 'is',     'pages',        240                         ],
-        [ 'is',     'width',        undef                       ],
-        [ 'is',     'height',       undef                       ],
-        [ 'is',     'weight',       undef                       ],
-        [ 'is',     'image_link',   'http://www.whsmith.co.uk/Images/Products\571\239\9780571239566_m_f.jpg' ],
-        [ 'is',     'thumb_link',   'http://www.whsmith.co.uk/Images/Products\571\239\9780571239566_m_f.jpg' ],
-        [ 'like',   'description',  qr|Ian Curtis left behind a legacy rich in artistic genius| ],
-        [ 'is',     'book_link',    'http://www.whsmith.co.uk/Products/Touching-from-a-Distance-illustrated-edition+Paperback+9780571239566' ]
+    '9780847834815' => [
+        [ 'is',     'isbn',         '9780847834815'                 ],
+        [ 'is',     'isbn10',       '0847834816'                    ],
+        [ 'is',     'isbn13',       '9780847834815'                 ],
+        [ 'is',     'ean13',        '9780847834815'                 ],
+        [ 'is',     'title',        'Joy Division'                  ],
+        [ 'is',     'author',       'Kevin Cummins, Bernard Sumner' ],
+        [ 'is',     'publisher',    undef                           ],
+        [ 'is',     'pubdate',      '01/10/2010'                    ],
+        [ 'is',     'binding',      'Hardback'                      ],
+        [ 'is',     'pages',         208                            ],
+        [ 'is',     'width',        undef                           ],
+        [ 'is',     'height',       undef                           ],
+        [ 'is',     'weight',        1397                           ],
+        [ 'is',     'image_link',   'http://btmedia.whsmith.co.uk/pws/client/images/catalogue/products/9780/84/7834815/xlarge/9780847834815_1.jpg' ],
+        [ 'is',     'thumb_link',   'http://btmedia.whsmith.co.uk/pws/client/images/catalogue/products/9780/84/7834815/xlarge/9780847834815_1.jpg' ],
+        [ 'like',   'description',  qr|The definitive look at one of the most iconic rock bands of all time| ],
+        [ 'is',     'book_link',    'http://www.whsmith.co.uk/products/joy-division/product/9780847834815' ]
     ],
 );
 
@@ -94,18 +95,21 @@ SKIP: {
             is($record->found,1);
             is($record->found_in,$DRIVER);
 
+            my $res = 0;
+            my $fail = 0;
             my $book = $record->book;
             for my $test (@{ $tests{$isbn} }) {
-                if($test->[0] eq 'ok')          { ok(       $book->{$test->[1]},             ".. '$test->[1]' found [$isbn]"); } 
-                elsif($test->[0] eq 'is')       { is(       $book->{$test->[1]}, $test->[2], ".. '$test->[1]' found [$isbn]"); } 
-                elsif($test->[0] eq 'isnt')     { isnt(     $book->{$test->[1]}, $test->[2], ".. '$test->[1]' found [$isbn]"); } 
-                elsif($test->[0] eq 'like')     { like(     $book->{$test->[1]}, $test->[2], ".. '$test->[1]' found [$isbn]"); } 
-                elsif($test->[0] eq 'unlike')   { unlike(   $book->{$test->[1]}, $test->[2], ".. '$test->[1]' found [$isbn]"); }
+                if($test->[0] eq 'ok')          { $res = ok(       $book->{$test->[1]},             ".. '$test->[1]' found [$isbn]"); } 
+                elsif($test->[0] eq 'is')       { $res = is(       $book->{$test->[1]}, $test->[2], ".. '$test->[1]' found [$isbn]"); } 
+                elsif($test->[0] eq 'isnt')     { $res = isnt(     $book->{$test->[1]}, $test->[2], ".. '$test->[1]' found [$isbn]"); } 
+                elsif($test->[0] eq 'like')     { $res = like(     $book->{$test->[1]}, $test->[2], ".. '$test->[1]' found [$isbn]"); } 
+                elsif($test->[0] eq 'unlike')   { $res = unlike(   $book->{$test->[1]}, $test->[2], ".. '$test->[1]' found [$isbn]"); }
 
+                $fail = 1   unless($res);
+                #$fail = 1   unless(defined $book->{$test->[1]} || ($test->[0] ne 'ok' && !defined $test->[2]));
             }
 
-            #use Data::Dumper;
-            #diag("book=[".Dumper($book)."]");
+            diag("book=[".Dumper($book)."]")    if($fail);
         }
     }
 }
@@ -121,7 +125,7 @@ sub pingtest {
 
     eval { system($cmd) }; 
     if($@) {                # can't find ping, or wrong arguments?
-        diag();
+        diag($@);
         return 1;
     }
 
