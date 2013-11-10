@@ -1,6 +1,7 @@
 Revision history for WWW-Scraper-ISBN-WHSmith_Driver
 ====================================================
 
+0.05    2013-11-10
         - added isbn-check.pl to examples.
         - META updates.
         - added git repository links to metadata.
