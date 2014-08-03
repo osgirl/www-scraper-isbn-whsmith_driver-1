@@ -24,7 +24,7 @@ my %tests = (
         [ 'is',     'pages',        '432'                           ],
         [ 'is',     'width',        undef                           ],
         [ 'is',     'height',       undef                           ],
-        [ 'is',     'weight',       311                             ],
+        [ 'is',     'weight',       299                             ],
         [ 'is',     'image_link',   'http://btmedia.whsmith.co.uk/pws/client/images/catalogue/products/9780/55/2557795/xlarge/9780552557795_1.jpg' ],
         [ 'is',     'thumb_link',   'http://btmedia.whsmith.co.uk/pws/client/images/catalogue/products/9780/55/2557795/xlarge/9780552557795_1.jpg' ],
         [ 'like',   'description',  qr|On the day the world ends|   ],
@@ -95,18 +95,14 @@ SKIP: {
             is($record->found,1);
             is($record->found_in,$DRIVER);
 
-            my $res = 0;
             my $fail = 0;
             my $book = $record->book;
             for my $test (@{ $tests{$isbn} }) {
-                if($test->[0] eq 'ok')          { $res = ok(       $book->{$test->[1]},             ".. '$test->[1]' found [$isbn]"); } 
-                elsif($test->[0] eq 'is')       { $res = is(       $book->{$test->[1]}, $test->[2], ".. '$test->[1]' found [$isbn]"); } 
-                elsif($test->[0] eq 'isnt')     { $res = isnt(     $book->{$test->[1]}, $test->[2], ".. '$test->[1]' found [$isbn]"); } 
-                elsif($test->[0] eq 'like')     { $res = like(     $book->{$test->[1]}, $test->[2], ".. '$test->[1]' found [$isbn]"); } 
-                elsif($test->[0] eq 'unlike')   { $res = unlike(   $book->{$test->[1]}, $test->[2], ".. '$test->[1]' found [$isbn]"); }
-
-                $fail = 1   unless($res);
-                #$fail = 1   unless(defined $book->{$test->[1]} || ($test->[0] ne 'ok' && !defined $test->[2]));
+                if($test->[0] eq 'ok')          { $fail += ! ok(       $book->{$test->[1]},             ".. '$test->[1]' found [$isbn]"); } 
+                elsif($test->[0] eq 'is')       { $fail += ! is(       $book->{$test->[1]}, $test->[2], ".. '$test->[1]' found [$isbn]"); } 
+                elsif($test->[0] eq 'isnt')     { $fail += ! isnt(     $book->{$test->[1]}, $test->[2], ".. '$test->[1]' found [$isbn]"); } 
+                elsif($test->[0] eq 'like')     { $fail += ! like(     $book->{$test->[1]}, $test->[2], ".. '$test->[1]' found [$isbn]"); } 
+                elsif($test->[0] eq 'unlike')   { $fail += ! unlike(   $book->{$test->[1]}, $test->[2], ".. '$test->[1]' found [$isbn]"); }
             }
 
             diag("book=[".Dumper($book)."]")    if($fail);
