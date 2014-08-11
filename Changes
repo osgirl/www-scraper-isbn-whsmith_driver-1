@@ -2,10 +2,11 @@ Revision history for WWW-Scraper-ISBN-WHSmith_Driver
 ====================================================
 
         - test data update.
-        - fixed distribution name in META.
+        - fixed distribution name in metadata.
         - upgrade to WWW-Scraper-ISBN-1.00.
         - conversion routines now moved to WWW::Scraper::ISBN::Driver.
         - extended test suite.
+        - weights change too frequently, using 'like' tests instead of 'is'.
 
 0.05    2013-11-10
         - added isbn-check.pl to examples.
