@@ -1,6 +1,7 @@
 Revision history for WWW-Scraper-ISBN-WHSmith_Driver
 ====================================================
 
+0.06    2014-08-11
         - test data update.
         - fixed distribution name in metadata.
         - upgrade to WWW-Scraper-ISBN-1.00.
