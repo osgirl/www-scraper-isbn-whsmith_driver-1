@@ -26,9 +26,9 @@ my %tests = (
         [ 'is',     'height',       undef                           ],
         [ 'like',   'weight',       qr|^\d+$|                       ],
         [ 'is',     'image_link',   'http://btmedia.whsmith.co.uk/pws/client/images/catalogue/products/9780/55/2557795/xlarge/9780552557795_1.jpg' ],
-        [ 'is',     'thumb_link',   'http://btmedia.whsmith.co.uk/pws/client/images/catalogue/products/9780/55/2557795/xlarge/9780552557795_1.jpg' ],
+        [ 'is',     'thumb_link',   'http://btmedia.whsmith.co.uk/pws/client/images/catalogue/products/9780/55/2557795/small/9780552557795_1.jpg' ],
         [ 'like',   'description',  qr|On the day the world ends|   ],
-        [ 'is',     'book_link',    'http://www.whsmith.co.uk/products/nation/product/9780552557795' ]
+        [ 'is',     'book_link',    'http://www.whsmith.co.uk/pws/ProductDetails.ice?ProductID=9780552557795&keywords=9780552557795&redirect=true' ]
     ],
     '9780847834815' => [
         [ 'is',     'isbn',         '9780847834815'                 ],
@@ -45,9 +45,9 @@ my %tests = (
         [ 'is',     'height',       undef                           ],
         [ 'like',   'weight',       qr|^\d+$|                       ],
         [ 'is',     'image_link',   'http://btmedia.whsmith.co.uk/pws/client/images/catalogue/products/9780/84/7834815/xlarge/9780847834815_1.jpg' ],
-        [ 'is',     'thumb_link',   'http://btmedia.whsmith.co.uk/pws/client/images/catalogue/products/9780/84/7834815/xlarge/9780847834815_1.jpg' ],
+        [ 'is',     'thumb_link',   'http://btmedia.whsmith.co.uk/pws/client/images/catalogue/products/9780/84/7834815/small/9780847834815_1.jpg' ],
         [ 'like',   'description',  qr|The definitive look at one of the most iconic rock bands of all time| ],
-        [ 'is',     'book_link',    'http://www.whsmith.co.uk/products/joy-division/product/9780847834815' ]
+        [ 'is',     'book_link',    'http://www.whsmith.co.uk/pws/ProductDetails.ice?ProductID=9780847834815&keywords=9780847834815&redirect=true' ]
     ],
 );
 
