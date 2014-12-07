@@ -38,7 +38,7 @@ use WWW::Mechanize;
 # Constants
 
 use constant	REFERER	=> 'http://www.whsmith.co.uk';
-use constant	SEARCH	=> 'http://www.whsmith.co.uk/pws/doAdvancedSearch.ice?page=1&results=60&advancedCategoryId=wc_dept_books&keywordCategoryId=wc_dept_books&advanceSearch=true&title=&contributor=&format_fg=&publisher=&series=&imprint=&isbn13=';
+use constant	SEARCH	=> 'http://www.whsmith.co.uk/pws/ProductDetails.ice?ProductID=%s&keywords=%s&redirect=true';
 use constant    PRODUCT => '/products/[^/]+/product/';
 
 #--------------------------------------------------------------------------
@@ -102,27 +102,14 @@ sub search {
     $mech->add_header( 'Accept-Encoding' => undef );
     $mech->add_header( 'Referer' => REFERER );
 
-    my $search = SEARCH . $isbn;
+    my $search = sprintf SEARCH, $isbn, $isbn;
 #print STDERR "\n# search=[$search]\n";
     eval { $mech->get( $search ) };
     return $self->handler("the WHSmith website appears to be unavailable.")
 	    if($@ || !$mech->success() || !$mech->content());
 
-    my $html = $mech->content();
-    my $product = PRODUCT . $isbn;
-#print STDERR "\n# product=[$product]\n";
-#print STDERR "\n# html=[\n$html\n]\n";
-    my ($link) = $html =~ /($product)/si;
-	return $self->handler("Failed to find that book on the WHSmith website. [$isbn]")
-		unless($link);
-
-#print STDERR "\n# link=[$link]\n";
-    eval { $mech->get( REFERER . $link ) };
-    return $self->handler("the WHSmith website appears to be unavailable.")
-	    if($@ || !$mech->success() || !$mech->content());
-
   	# The Book page
-    $html = $mech->content();
+    my $html = $mech->content();
 	return $self->handler("Failed to find that book on the WHSmith website. [$isbn]")
 		if($html =~ m!Sorry, no products were found!si);
 
@@ -146,9 +133,13 @@ sub search {
     ($data->{binding})          = $html =~ m!<li itemprop="Format">\s*<strong>Format:</strong>\s*(.*?)</li>!si  unless($data->{binding});
     ($data->{pages})            = $html =~ m!<li itemprop="Number Of Pages">\s*<strong>Number Of Pages:</strong>\s*(.*?)</li>!si;
     ($data->{author})           = $html =~ m!<span class="secondary"><strong>By:</strong>(.*?)</span>!si;
-    ($data->{image})            = $html =~ m!<img  id='main_image' src="([^"]+)" alt="[^"]*"\s*itemprop="image" />!si;
-    ($data->{thumb})            = $html =~ m!<img  id='main_image' src="([^"]+)" alt="[^"]*"\s*itemprop="image" />!si;
+    ($data->{image})            = $html =~ m!<meta itemprop="image" content="([^"]*)">!si;
     ($data->{description})      = $html =~ m!<meta name="description" content="([^"]*)" />!si;
+
+    if($data->{image}) {
+        $data->{thumb} = $data->{image};
+        $data->{thumb} =~ s!/x?large/!/small/!;
+    }
 
     # currently not provided
     ($data->{width})            = $html =~ m!<span class="bold ">Width:\s*</span><span>([^<]+)</span>!si;
