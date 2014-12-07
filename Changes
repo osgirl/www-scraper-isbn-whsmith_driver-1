@@ -1,6 +1,8 @@
 Revision history for WWW-Scraper-ISBN-WHSmith_Driver
 ====================================================
 
+        - fixed license fields in META.json to be lists.
+
 0.06    2014-08-11
         - test data update.
         - fixed distribution name in metadata.
