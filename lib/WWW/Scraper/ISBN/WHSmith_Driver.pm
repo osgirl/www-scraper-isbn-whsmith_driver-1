@@ -111,7 +111,8 @@ sub search {
   	# The Book page
     my $html = $mech->content();
 	return $self->handler("Failed to find that book on the WHSmith website. [$isbn]")
-		if($html =~ m!Sorry, no products were found!si);
+		if($html =~ m!Sorry, no products were found!si ||
+           $html !~ m!</html>!si);  # sometimes the WHSmith site only sends back a small portion of the page :(
 
     my $url = $mech->uri();
 	return $self->handler("Failed to find that book on the WHSmith website. [$isbn]")
