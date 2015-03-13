@@ -1,6 +1,7 @@
 Revision history for WWW-Scraper-ISBN-WHSmith_Driver
 ====================================================
 
+0.08    2015-03-13
         - bail if only part of the page is returned.
 
 0.07    2014-12-11
